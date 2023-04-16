@@ -5,7 +5,7 @@ This folder contains all the tasks (1 and 2) required in assignment 2 of this mo
 # How to run it
 To run the code, you can just run the following commands in this directory:
 
-<code>make</code>
+<code>make</code> <br/>
 <code>./main</code>
 
 # Task 1
