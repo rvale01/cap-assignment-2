@@ -1,6 +1,10 @@
 <h1>ASSIGNMENT 2</h1>
 
-This folder contains all the tasks (1 and 2) required in assignment 2 of this module.
+This folder contains all the tasks (1 and 2) required in assignment 2 of this module. This task is an extension of assignment 1, therefore the same code from assignment
+1 has been used as a starting point. The code here is split in two files: main.c and main.h.
+
+All the functions and structs have been created in main.h. While the main code is written in main.c
+
 
 # How to run it
 To run the code, you can just run the following commands in this directory:
