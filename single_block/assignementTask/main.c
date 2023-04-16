@@ -24,8 +24,6 @@ int main(){
 
     }
 
-
-
     // Set the file path for the chain file and open it
     char file_path[] = "../chains/test.chain";
     chain_file_ptr = fopen(file_path, "r");
@@ -79,8 +77,9 @@ int main(){
 
                     print_transaction(&(chain.transaction[x]));
 
-                    // calling the mining function, it will run the code in 3 threads
-                    mine_block(&(chain.header), 3);
+                    // calling the mining function, it will run the code in several threads
+                    // the number of threads 
+                    mine_block(&(chain.header), threads_no);
                     print_timestamp(timestamp_choice);
                 }
                 // free the memory of the chain
