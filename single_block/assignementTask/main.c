@@ -9,6 +9,10 @@ int main(){
     int user_default_choice = user_choice();
     int print_wallet = 2;
     int timestamp_choice = 2;
+
+    // this was added for this assignment
+    int threads_no = threads_choice();
+
     if(user_default_choice == 2){
         // 1 to print the wallet balance for each transaction
         // 2 to print just the total balance
@@ -19,6 +23,8 @@ int main(){
         timestamp_choice = ask_for_timestamps();
 
     }
+
+
 
     // Set the file path for the chain file and open it
     char file_path[] = "../chains/test.chain";
@@ -72,6 +78,8 @@ int main(){
                     }
 
                     print_transaction(&(chain.transaction[x]));
+
+                    // calling the mining function, it will run the code in 3 threads
                     mine_block(&(chain.header), 3);
                     print_timestamp(timestamp_choice);
                 }
