@@ -215,6 +215,8 @@ void print_timestamp(int timestamp_choice){
     }
 }
 
+// this fuction generates the hash of the block by taking hte header of the block and passing it
+// to the SHA256 which will hash it
 uint64_t generate_block_hash(const chain_block_header_t *header) {
     uint64_t hash_64 = 0;
     uint8_t hash[SHA256_DIGEST_LENGTH];
@@ -224,6 +226,8 @@ uint64_t generate_block_hash(const chain_block_header_t *header) {
     SHA256_Update(&sha256, header, sizeof(chain_block_header_t));
     SHA256_Final(hash, &sha256);
 
+    // as asked in task 1 of this assignment, we are taking just the first 64 bits of the hash
+    // by applying XOR
     for (int i = 0; i < 8; i++) {
         hash_64 ^= ((uint64_t) hash[i]) << (i * 8);
     }
@@ -231,55 +235,98 @@ uint64_t generate_block_hash(const chain_block_header_t *header) {
     return hash_64;
 }
 
+// this function is checking if the hash generated is less than the difficulty of the header
+// if it is, then it means that valid Proof-of-Work has been found for that specific chain,
+// which therefore satysfies the mining requirement 
 int mining_check(chain_block_header_t *header){
     
     header->nonce++;
     uint64_t hash = generate_block_hash(header);
 
     if (hash <= header->difficulty) {
-        return 1;
+        return 0;
     }
-    return 0;
+    return 1;
 }
 
+// value used across the different threads (if the user decides to user multiples)
+// this acts like a boolean, so if this becomes 1, the mining has been completed and all
+// threads will stop
 int mining_complete = 0;
 
+// this is the function which is passed to the threads function (pthread_create)
 void *mine_block_thread(void *args) {
+    // from the parameters we destructure it and take the single variables
     thread_data_t *data = (thread_data_t *)args;
     chain_block_header_t *header = data->header;
     uint64_t nonce = data->start_nonce;
     uint64_t end_nonce = data->end_nonce;
 
-    while (!mining_complete && nonce <= end_nonce) {
-        if (mining_check(header) == 1) {
-            if (!mining_complete) {
+    // if the mining is not complete and the nonce is withing its range, 
+    // we keep doing the mining check.
+    // Once that function returns a 1 and the mining has not already been completed by another thread
+    // then we update the mining_complete variable, save the nonce inside the header and show to the user
+    // that the mining was successful
+    while (mining_complete !== 1 && nonce <= end_nonce) {
+
+        //if the mining was completed
+        if (mining_check(header) == 0) {
+            if (mining_complete == 0) {
                 mining_complete = 1;
                 header->nonce = nonce;
                 printf("Mining completed!");
+                return NULL;
             }
         }
+
+        // if the mining is not completed, then the nonce is increased
         nonce++;
     }   
 
     return NULL;
 }
 
+// this function is mining the header of a chain
+// the mining will happen in threads (the number of threads is decided by the user)
 void mine_block(chain_block_header_t *header, int threads) {
     uint64_t hash;
     int mining = 1;
 
     pthread_t thread_ids[threads];
-    thread_data_t thread_data[threads];
+    thread_data_t thread_data[threads]; // the data which will be passed to the function which will ran using threads
     uint64_t nonce_range = ULLONG_MAX / threads;
 
+    // looping for the number of threads
     for (int i = 0; i < threads; i++) {
+        // for each thread the header is passed and the start and end of the nonce is calculated
+        // (this is done so that two or more threads do not run the same nonce)
         thread_data[i].header = header;
-        thread_data[i].start_nonce = i * nonce_range;
-        thread_data[i].end_nonce = (i + 1) * nonce_range - 1;
+        thread_data[i].start_nonce = (i * nonce_range) + header->nonce;
+        thread_data[i].end_nonce = ((i + 1) * nonce_range - 1) + header->nonce;
+
+        // calling the pthread_create function and passing the thread id, the function will be run in the threads
+        // and the thread_data which will be passed as params to the function
         pthread_create(&thread_ids[i], NULL, mine_block_thread, &thread_data[i]);
     }
 
+    // this function (pthread_join) will ensure that the main thread waits for each of the worker threads to complete
+    // before continuing execution
      for (int i = 0; i < threads; i++) {
         pthread_join(thread_ids[i], NULL);
     }
+}
+
+// function used to ask the user for how many threads they want to use for the mining function
+int threads_choice() {
+    int thread_no;
+    printf("Enter the number of threads to use for the mining function\n");
+    scanf("%d", &thread_no);
+
+    // if the user inputs 0 or less than 0, then the choice is invalid and the 
+    // threads_choice is called in a recursive way
+    if (thread_no <= 0 ) {
+        printf("Invalid choice!\n");
+        threads_choice();
+    } 
+    return thread_no;
 }
