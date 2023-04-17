@@ -267,13 +267,13 @@ void *mine_block_thread(void *args) {
     // Once that function returns a 1 and the mining has not already been completed by another thread
     // then we update the mining_complete variable, save the nonce inside the header and show to the user
     // that the mining was successful
-    while (mining_complete !== 1 && nonce <= end_nonce) {
+    while (mining_complete != 1 && nonce <= end_nonce) {
 
         //if the mining was completed
         if (mining_check(header) == 0) {
             if (mining_complete == 0) {
                 mining_complete = 1;
-                header->nonce = nonce;
+                //header->nonce = nonce;
                 printf("Mining completed!");
                 return NULL;
             }
